@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Converter - CNY Added</title>
+    <style>
+        :root {
+            --primary-color: #e74c3c; /* เปลี่ยนเป็นโทนสีแดงให้เข้ากับสีเงินหยวน */
+            --bg-color: #fdf2f2;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .converter-box { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #333; margin-bottom: 1.5rem; }
+        .field { margin-bottom: 1rem; position: relative; }
+        label { display: block; margin-bottom: 0.5rem; color: #666; font-size: 0.9rem; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+        
+        /* ปุ่มสลับสกุลเงิน */
+        .swap-btn {
+            background: #eee;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: block;
+            margin: -10px auto 10px auto;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: 0.2s;
+        }
+        .swap-btn:hover { background: #ddd; transform: rotate(180deg); }
+
+        button.main-btn { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-size: 1.1rem; cursor: pointer; transition: 0.3s; margin-top: 1rem; font-weight: bold; }
+        button.main-btn:hover { background: #c0392b; }
+        #result { text-align: center; margin-top: 1.5rem; font-size: 1.2rem; color: #333; min-height: 2em; line-height: 1.6; }
+        .rate-val { font-size: 2rem; color: var(--primary-color); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="converter-box">
+    <h2>แปลงสกุลเงิน 💱</h2>
+    
+    <div class="field">
+        <label>จำนวนเงิน</label>
+        <input type="number" id="amount" value="100" min="0">
+    </div>
+
+    <div class="field">
+        <label>จากสกุลเงิน</label>
+        <select id="fromCurrency">
+            <option value="THB">THB - Thai Baht</option>
+            <option value="CNY" selected>CNY - Chinese Yuan (หยวน)</option>
+            <option value="USD">USD - US Dollar</option>
+            <option value="JPY">JPY - Japanese Yen</option>
+            <option value="EUR">EUR - Euro</option>
+        </select>
+    </div>
+
+    <button class="swap-btn" onclick="swapCurrencies()" title="สลับสกุลเงิน">⇅</button>
+
+    <div class="field">
+        <label>ไปเป็นสกุลเงิน</label>
+        <select id="toCurrency">
+            <option value="THB" selected>THB - Thai Baht</option>
+            <option value="CNY">CNY - Chinese Yuan (หยวน)</option>
+            <option value="USD">USD - US Dollar</option>
+            <option value="JPY">JPY - Japanese Yen</option>
+            <option value="EUR">EUR - Euro</option>
+        </select>
+    </div>
+
+    <button class="main-btn" onclick="convert()">คำนวณเงิน</button>
+
+    <div id="result">
+        กดปุ่มเพื่อดูเรทล่าสุด
+    </div>
+</div>
+
+<script>
+    function swapCurrencies() {
+        const from = document.getElementById('fromCurrency');
+        const to = document.getElementById('toCurrency');
+        const temp = from.value;
+        from.value = to.value;
+        to.value = temp;
+    }
+
+    async function convert() {
+        const amount = document.getElementById('amount').value;
+        const from = document.getElementById('fromCurrency').value;
+        const to = document.getElementById('toCurrency').value;
+        const resultDisplay = document.getElementById('result');
+
+        if (!amount || amount <= 0) {
+            resultDisplay.innerText = "กรุณากรอกจำนวนเงิน";
+            return;
+        }
+
+        resultDisplay.innerText = "กำลังอัปเดตข้อมูล...";
+
+        try {
+            const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${from}`);
+            const data = await response.json();
+            
+            const rate = data.rates[to];
+            const convertedAmount = (amount * rate).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            resultDisplay.innerHTML = `${amount} ${from} เท่ากับ <br><span class="rate-val">${convertedAmount} ${to}</span>`;
+        } catch (error) {
+            resultDisplay.innerText = "ขออภัย! ไม่สามารถดึงข้อมูลได้ในขณะนี้";
+        }
+    }
+</script>
+
+</body>
+</html>
